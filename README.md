@@ -51,6 +51,14 @@ Mô phỏng: Cứ 5 giây, tự tạo ra giá trị nhiệt độ, độ ẩm ng
 Lưu vào MariaDB: Cập nhật giá trị mới nhất vào bảng latest_sensor_data.
 
 Lưu vào InfluxDB: Ghi lại giá trị lịch sử vào InfluxDB (để Grafana vẽ biểu đồ).
+<img width="1920" height="1080" alt="Screenshot (50)" src="https://github.com/user-attachments/assets/612160de-5666-433c-9576-6f5542d7b98e" />
+
+- Em install thêm node-red-node-mysql 
+<img width="681" height="164" alt="image" src="https://github.com/user-attachments/assets/d64a452b-fb7e-4b55-8413-e47589709b2e" />
+
+- Em cấu hình kết nối với MariaDB:
+<img width="1920" height="1080" alt="Screenshot (51)" src="https://github.com/user-attachments/assets/6a550cf0-9d31-49ce-bc92-33a34530fa7a" />
+
 
 
 
