@@ -59,6 +59,23 @@ Lưu vào InfluxDB: Ghi lại giá trị lịch sử vào InfluxDB (để Grafan
 - Em cấu hình kết nối với MariaDB:
 <img width="1920" height="1080" alt="Screenshot (51)" src="https://github.com/user-attachments/assets/6a550cf0-9d31-49ce-bc92-33a34530fa7a" />
 
+- Em kiểm tra dữ liệu mới nhất trong MariaDB
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ab110ab6-8009-467f-a469-2c5ac30ea962" />
+
+- Tiếp theo em truy cập vào Grafana: http://localhost:3000
+<img width="837" height="72" alt="image" src="https://github.com/user-attachments/assets/862a3b34-69f3-4dd0-90e3-7a1a9bf750e0" />
+
+- Em đăng nhập vào Grafana
+<img width="1920" height="1080" alt="Screenshot (56)" src="https://github.com/user-attachments/assets/c1ae42e4-1521-4a27-b0a6-0359e78d441c" />
+
+- Em đã đăng nhập vào được Grafana
+<img width="1920" height="1080" alt="Screenshot (57)" src="https://github.com/user-attachments/assets/bf9ab430-2807-4000-9b8f-98f88376f269" />
+
+- Sau khi em đăng nhập vào được Grafana -> connections -> data sources -> influxdb:
+<img width="1920" height="1080" alt="Screenshot (58)" src="https://github.com/user-attachments/assets/23a9a99a-94c3-42d3-b62f-4c9c415270af" />
+<img width="1920" height="1080" alt="Screenshot (59)" src="https://github.com/user-attachments/assets/a586e9a5-7569-4df2-95a4-4805669da668" />
+
+
 
 
 
