@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: 123456
+      MARIADB_DATABASE: iot_db
+      MARIADB_USER: tuananh
+      MARIADB_PASSWORD: 123456
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306" # Cổng MariaDB
+    networks:
+      - backend
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - "8080:80" # Cổng phpMyAdmin
+    depends_on:
+      - mariadb
+    networks:
+      - backend
+
+  nodered:
+    image: nodered/node-red:latest
+    container_name: node-red
+    restart: unless-stopped
+    user: "node-red"
+    volumes:
+      - ./nodered-data:/data
+    ports:
+      # --- ĐÃ THÊM LẠI CỔNG ---
+      - "1880:1880" # Cổng Node-RED
+    networks:
+      - backend
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: tuananh
+      DOCKER_INFLUXDB_INIT_PASSWORD: 12345678 # Mật khẩu 8+ ký tự
+      DOCKER_INFLUXDB_INIT_ORG: tuananh_org
+      DOCKER_INFLUXDB_INIT_BUCKET: iot_bucket
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: tuananh_token_123456
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    ports:
+      - "8086:8086" # Cổng InfluxDB
+    networks:
+      - backend
+      
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: grafana_password_123
+      # Cấu hình cho Yêu cầu 5.3 (truy cập qua /grafana/)
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      # --- ĐÃ THÊM LẠI CỔNG ---
+      - "3000:3000" # Cổng Grafana
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"     # Cổng Nginx (HTTP)
+      - "443:443"   # Cổng Nginx (HTTPS)
+    networks:
+      - backend
+
+volumes:
+  mariadb_data:
+  node_red_data:
+  influxdb_data:
+  grafana_data:
+
+networks:
+  backend:
+    driver: bridge
