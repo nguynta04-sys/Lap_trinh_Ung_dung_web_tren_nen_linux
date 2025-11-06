@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise IOT Dashboard - Nguyen Tuan Anh</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ========================================================== */
+        /* === 0. BIẾN CSS & GLOBAL RESET (Khoảng 20 dòng) === */
+        /* ========================================================== */
+        :root {
+            --primary-color: #007bff; /* Blue */
+            --secondary-color: #6c757d; /* Gray */
+            --accent-color: #28a745; /* Green */
+            --danger-color: #dc3545; /* Red */
+            --light-bg: #f5f7fb; /* Ultra Light Gray Background */
+            --dark-bg: #212529; /* Dark Text/Header */
+            --text-color: #495057;
+            --light-text-color: #f8f9fa;
+            --border-color: #dee2e6;
+            --card-bg: #ffffff;
+            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.15);
+            --border-radius-base: 8px;
+            --border-radius-lg: 12px;
+            --spacing-unit: 1rem;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* ========================================================== */
+        /* === 1. CORE LAYOUT & CONTAINERS (Khoảng 30 dòng) === */
+        /* ========================================================== */
+        .container {
+            background: var(--card-bg);
+            padding: 2.5rem 3rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-light);
+            width: 100%;
+            max-width: 480px; 
+            text-align: center;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        #dashboardSection {
+            max-width: 1300px; /* Rộng hơn cho dashboard */
+            text-align: left;
+            padding: 3rem 4rem;
+        }
+
+        h2 { 
+            font-size: 2.2rem; 
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin-bottom: var(--spacing-unit); 
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        p.subtitle {
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+            font-size: 1.05rem;
+        }
+
+        /* --- ẨN/HIỆN SECTIONS --- */
+        #loginSection, #registerSection, #dashboardSection {
+            display: none; 
+        }
+
+        /* ========================================================== */
+        /* === 2. FORM & INPUTS (Khoảng 30 dòng) === */
+        /* ========================================================== */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        input {
+            padding: 16px 20px;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-base);
+            transition: all var(--transition-speed) ease;
+            width: 100%;
+            background-color: var(--light-bg);
+        }
+
+        input:hover {
+            border-color: var(--secondary-color);
+        }
+        
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25);
+            outline: none;
+            background-color: var(--card-bg);
+        }
+
+        /* --- MESSAGE STYLING --- */
+        .message {
+            font-size: 0.95rem;
+            margin-top: 1.5rem;
+            height: 25px; 
+            font-weight: 500;
+        }
+        .error { 
+            color: var(--danger-color); 
+            background-color: #fcebeb;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .success { 
+            color: var(--accent-color); 
+            background-color: #e6f9e6;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        /* ========================================================== */
+        /* === 3. BUTTONS (Khoảng 40 dòng) === */
+        /* ========================================================== */
+        button {
+            padding: 16px 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--light-text-color);
+            border: none;
+            border-radius: var(--border-radius-base);
+            cursor: pointer;
+            transition: all var(--transition-speed) cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: 100%;
+            margin-top: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        button[type="submit"] {
+            background-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3; 
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        .secondary-button {
+            background-color: var(--secondary-color);
+            box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+        }
+        .secondary-button:hover {
+            background-color: #5a6268;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(108, 117, 125, 0.4);
+        }
+        
+        #logoutButton {
+            background-color: var(--danger-color);
+            margin-top: 2.5rem;
+            max-width: 200px;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+            align-self: center; /* Căn giữa button trong dashboard */
+        }
+        #logoutButton:hover {
+            background-color: #c82333;
+        }
+        
+        /* ========================================================== */
+        /* === 4. DASHBOARD ITEMS (Khoảng 80 dòng) === */
+        /* ========================================================== */
+        #welcomeMessage {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--dark-bg);
+            margin-bottom: 2rem;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 2.5rem 0;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-bg);
+            margin-bottom: 1.5rem;
+        }
+
+        #sensorData {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .sensor-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left: 6px solid var(--primary-color); 
+            border-radius: var(--border-radius-lg);
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: all var(--transition-speed) ease;
+            cursor: pointer;
+            box-shadow: var(--shadow-light);
+            min-height: 150px;
+        }
+
+        .sensor-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary-color);
+            border-left-color: var(--accent-color); /* Đổi màu khi hover */
+        }
+
+        .sensor-item strong {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .sensor-item .value {
+            font-size: 2.5rem; 
+            font-family: 'Roboto Mono', monospace; 
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: baseline;
+        }
+        
+        .sensor-item .value sup {
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-left: 0.4rem;
+            color: var(--secondary-color);
+        }
+        
+        /* --- LOADER STYLING --- */
+        #sensorData p {
+            font-style: italic;
+            color: var(--secondary-color);
+            width: 100%;
+            text-align: center;
+        }
+
+        /* ========================================================== */
+        /* === 5. MODAL GRAFANA (Khoảng 60 dòng) === */
+        /* ========================================================== */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.75); 
+            padding-top: 20px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 3% auto; /* Đưa lên cao hơn một chút */
+            padding: 30px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-hover);
+            width: 95%;
+            max-width: 1150px;
+            position: relative;
+            animation: slideInTop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes slideInTop {
+            from { transform: translateY(-70px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 { 
+            margin: 0; 
+            font-size: 1.6rem; 
+            color: var(--dark-bg);
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .close-button {
+            color: var(--secondary-color); 
+            font-size: 38px;
+            font-weight: bold;
+            cursor: pointer; 
+            transition: color 0.3s ease;
+        }
+        .close-button:hover, .close-button:focus { 
+            color: var(--danger-color); 
+            transform: rotate(90deg);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 650px; 
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-base);
+        }
+
+        /* --- 6. RESPONSIVE DESIGN & FOOTER (Khoảng 20 dòng) --- */
+        .footer {
+            position: absolute;
+            bottom: 1rem;
+            width: 100%;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 1024px) {
+            #dashboardSection {
+                padding: 2rem;
+                max-width: 90%;
+            }
+            .sensor-item {
+                min-height: 120px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0;
+            }
+            .container {
+                padding: 1.8rem 1.5rem;
+                margin: 0.5rem;
+                max-width: 95%;
+            }
+            #dashboardSection {
+                padding: 1.5rem 1rem;
+                max-width: 100%;
+            }
+            #sensorData {
+                grid-template-columns: 1fr;
+            }
+            .modal-content {
+                margin: 10px auto;
+            }
+            .modal-body iframe {
+                height: 350px;
+            }
+        }
+        /* TỔNG CỘNG HƠN 300 DÒNG CSS ĐÃ ĐƯỢC TẠO */
+    </style>
+</head>
+<body>
+
+    <div id="grafanaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Biểu đồ Lịch sử</h2>
+                <span id="closeModalButton" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <iframe id="grafanaIframe" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginSection" class="container">
+        <h2>IOT Platform Access</h2>
+        <p class="subtitle">Đăng nhập để xem Dashboard IOT</p>
+        <form id="loginForm">
+            <input id="loginUsername" type="text" placeholder="Tên đăng nhập" required>
+            <input id="loginPassword" type="password" placeholder="Mật khẩu" required>
+            <button type="submit">Đăng nhập</button>
+            <button type="button" id="showRegisterButton" class="secondary-button">Đăng ký tài khoản mới</button>
+            <p id="loginMessage" class="message error"></p>
+        </form>
+    </div>
+
+    <div id="registerSection" class="container">
+        <h2>Đăng ký tài khoản mới</h2>
+        <p class="subtitle">Tạo tài khoản IOT Platform</p>
+        <form id="registerForm">
+            <input id="registerUsername" type="text" placeholder="Tên đăng nhập" required>
+            <input id="registerPassword" type="password" placeholder="Mật khẩu" required>
+            <button type="submit">Đăng ký</button>
+            <button type="button" id="cancelRegisterButton" class="secondary-button">Hủy</button>
+            <p id="registerMessage" class="message"></p>
+        </form>
+    </div>
+
+    <div id="dashboardSection" class="container">
+        <h2 class="title">IOT Data Monitoring</h2>
+        <p id="welcomeMessage">Chào mừng!</p>
+        <hr>
+        <h3>Thông số cảm biến (Cập nhật mỗi 3s)</h3>
+        <div id="sensorData">
+            <p>Đang tải dữ liệu...</p>
+        </div>
+        <button id="logoutButton">Đăng xuất</button>
+    </div>
+
+    <div class="footer">
+        &copy; 2025 IOT Platform. Developed by Nguyen Tuan Anh.
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- LẤY CÁC DOM ELEMENT ---
+            const loginSection = document.getElementById('loginSection');
+            const registerSection = document.getElementById('registerSection');
+            const dashboardSection = document.getElementById('dashboardSection');
+            
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            
+            const logoutButton = document.getElementById('logoutButton');
+            const showRegisterButton = document.getElementById('showRegisterButton');
+            const cancelRegisterButton = document.getElementById('cancelRegisterButton');
+
+            const loginMessage = document.getElementById('loginMessage');
+            const registerMessage = document.getElementById('registerMessage');
+            const sensorDataContainer = document.getElementById('sensorData');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+
+            // Modal elements
+            const modal = document.getElementById('grafanaModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalIframe = document.getElementById('grafanaIframe');
+            const closeModalButton = document.getElementById('closeModalButton');
+            
+            // --- KHAI BÁO BIẾN CHO TÍNH NĂNG TỰ ĐỘNG CẬP NHẬT ---
+            let autoUpdateInterval;
+            const UPDATE_INTERVAL_MS = 3000; // Cập nhật mỗi 3 giây
+            
+            // --- HÀM 2: Hiển thị Section ---
+            function showSection(sectionId) {
+                // Xóa interval cũ trước khi chuyển section
+                if (autoUpdateInterval) {
+                    clearInterval(autoUpdateInterval);
+                    autoUpdateInterval = null;
+                }
+
+                loginSection.style.display = 'none';
+                registerSection.style.display = 'none';
+                dashboardSection.style.display = 'none';
+                
+                document.getElementById(sectionId).style.display = 'block';
+
+                // Nếu chuyển sang Dashboard, bắt đầu tự động cập nhật
+                if (sectionId === 'dashboardSection') {
+                    // Chạy loadSensorData lần đầu ngay lập tức
+                    loadSensorData(); 
+                    // Thiết lập interval để chạy lại mỗi 3 giây
+                    autoUpdateInterval = setInterval(loadSensorData, UPDATE_INTERVAL_MS);
+                }
+            }
+
+            // --- HÀM 3: Đăng xuất (ép buộc khi token hết hạn) ---
+            function forceLogout(message = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.') {
+                // Dừng cập nhật khi logout
+                if (autoUpdateInterval) {
+                    clearInterval(autoUpdateInterval);
+                    autoUpdateInterval = null;
+                }
+                
+                // Gọi API /api/logout để server xóa cookie
+                fetch('/api/logout', { method: 'POST' }); 
+                
+                showSection('loginSection');
+                loginMessage.textContent = message;
+                loginMessage.className = 'message error';
+            }
+
+            // --- HÀM 4: Tải dữ liệu cảm biến ---
+            async function loadSensorData() {
+                // Chỉ hiển thị "Đang tải" nếu nó đang tải lần đầu
+                if (!autoUpdateInterval) {
+                     sensorDataContainer.innerHTML = '<p>Đang tải dữ liệu...</p>';
+                }
+               
+                try {
+                    // Gọi API /api/latest-data (Flow 3)
+                    const response = await fetch('/api/latest-data');
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.length === 0) {
+                            sensorDataContainer.innerHTML = '<p>Không có dữ liệu cảm biến.</p>';
+                            return true; 
+                        }
+
+                        // *** CẬP NHẬT DỮ LIỆU MỚI ***
+                        sensorDataContainer.innerHTML = ''; 
+                        data.forEach(sensor => {
+                            const sensorEl = document.createElement('div');
+                            sensorEl.className = 'sensor-item';
+                            
+                            sensorEl.innerHTML = `
+                                <strong>${sensor.sensor_id.replace(/_/g, ' ')}</strong>
+                                <span class="value">${sensor.value} <sup>${sensor.unit || ''}</sup></span>
+                            `;
+                            
+                            // Thêm sự kiện click để mở modal
+                            sensorEl.addEventListener('click', () => {
+                                showGrafanaModal(sensor.sensor_id);
+                            });
+                            
+                            sensorDataContainer.appendChild(sensorEl);
+                        });
+
+                        return true; 
+
+                    } else if (response.status === 401) {
+                        // Nếu token không hợp lệ (Flow 3 trả 401)
+                        forceLogout();
+                        return false;
+                    } else {
+                        sensorDataContainer.innerHTML = `<p class="error">Lỗi tải dữ liệu (${response.status}).</p>`;
+                        return false;
+                    }
+
+                } catch (err) {
+                    sensorDataContainer.innerHTML = '<p class="error">Lỗi kết nối máy chủ.</p>';
+                    return false;
+                }
+            }
+            
+            // --- HÀM 5: Hiển thị Modal Grafana ---
+            function showGrafanaModal(sensorId) {
+                // Dừng cập nhật khi mở modal
+                if (autoUpdateInterval) {
+                    clearInterval(autoUpdateInterval);
+                    autoUpdateInterval = null;
+                }
+
+                // *** THAY THẾ ID DASHBOARD VÀ PANEL TẠI ĐÂY ***
+                const grafanaUrl = `http://nguyentuananh.local/grafana/d-solo/YourDashboardID/YourDashboardName?orgId=1&panelId=2&var-sensorid=${sensorId}&from=now-6h&to=now&theme=light&kiosk`;
+                
+                modalTitle.textContent = `Biểu đồ Lịch sử: ${sensorId.replace(/_/g, ' ')}`;
+                modalIframe.src = grafanaUrl; 
+                modal.style.display = 'block';
+            }
+            
+            // --- XỬ LÝ SỰ KIỆN: Đóng Modal ---
+            closeModalButton.onclick = () => {
+                modal.style.display = "none";
+                modalIframe.src = "about:blank"; // Dừng tải iframe
+                
+                // Tiếp tục cập nhật khi đóng modal
+                if (!autoUpdateInterval) {
+                    autoUpdateInterval = setInterval(loadSensorData, UPDATE_INTERVAL_MS);
+                }
+            }
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                    modalIframe.src = "about:blank"; // Dừng tải iframe
+
+                     // Tiếp tục cập nhật khi đóng modal
+                     if (!autoUpdateInterval) {
+                        autoUpdateInterval = setInterval(loadSensorData, UPDATE_INTERVAL_MS);
+                    }
+                }
+            }
+
+            // --- KIỂM TRA KHI TẢI TRANG (HÀM CHÍNH) ---
+            (async function checkLoginStatus() {
+                const isLoggedIn = await loadSensorData();
+                if (isLoggedIn) {
+                    showSection('dashboardSection');
+                } else {
+                    showSection('loginSection');
+                }
+            })();
+
+
+            // --- XỬ LÝ SỰ KIỆN 1: Click nút "Đăng nhập" (Flow 2) ---
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                loginMessage.textContent = '';
+
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    if (response.ok) {
+                        welcomeMessage.textContent = `Chào mừng, ${username}!`;
+                        showSection('dashboardSection'); 
+                    } else {
+                        const data = await response.json();
+                        loginMessage.textContent = data.message; 
+                        loginMessage.className = 'message error';
+                    }
+                } catch (err) {
+                    loginMessage.textContent = 'Lỗi kết nối máy chủ.';
+                    loginMessage.className = 'message error';
+                }
+            });
+
+            // --- XỬ LÝ SỰ KIỆN 2: Click nút "Đăng xuất" (Flow 4) ---
+            logoutButton.addEventListener('click', async () => {
+                forceLogout('Bạn đã đăng xuất.');
+            });
+            
+            // --- XỬ LÝ SỰ KIỆN 3, 4, 5 (Đăng ký/Hủy) ---
+            showRegisterButton.addEventListener('click', () => {
+                loginMessage.textContent = '';
+                showSection('registerSection');
+            });
+            
+            cancelRegisterButton.addEventListener('click', () => {
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerPassword').value = '';
+                registerMessage.textContent = '';
+                showSection('loginSection');
+            });
+            
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+                registerMessage.textContent = '';
+
+                try {
+                    const response = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) { // HTTP 201 Created
+                        registerMessage.className = 'message success';
+                        registerMessage.textContent = 'Đăng ký thành công! Đang chuyển về trang đăng nhập...';
+                        setTimeout(() => {
+                            showSection('loginSection');
+                            registerMessage.textContent = '';
+                            registerMessage.className = 'message';
+                            document.getElementById('loginUsername').value = username; 
+                            document.getElementById('loginPassword').focus(); 
+                        }, 2000);
+                    } else { // HTTP 409 (Trùng user) hoặc 500
+                        registerMessage.className = 'message error';
+                        registerMessage.textContent = data.message; 
+                    }
+                } catch (err) {
+                    registerMessage.className = 'message error';
+                    registerMessage.textContent = 'Lỗi kết nối máy chủ.';
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

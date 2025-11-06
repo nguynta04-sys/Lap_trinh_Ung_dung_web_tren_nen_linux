@@ -1,0 +1,603 @@
+[
+    {
+        "id": "de301307f3f7dce7",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "d3a3dbb347ce888e",
+        "type": "tab",
+        "label": "Flow 5: Giả Lập MariaDB (Non-Array)",
+        "disabled": false,
+        "info": "Tạo dữ liệu ngẫu nhiên và lưu vào MariaDB (Bảng latest_sensor_values) mỗi 5 giây."
+    },
+    {
+        "id": "a1b2c3d4.e5f6a7",
+        "type": "tab",
+        "label": "API Web IOT (SHA2, Sửa Lỗi Undefined)",
+        "disabled": false,
+        "info": "Flow dùng SHA256 và KHÔNG dùng mảng cho payload MySQL."
+    },
+    {
+        "id": "10bcc990c4c36268",
+        "type": "MySQLdatabase",
+        "name": "",
+        "host": "mariadb",
+        "port": "3306",
+        "db": "iot_db",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "841a926e484c716f",
+        "type": "inject",
+        "z": "d3a3dbb347ce888e",
+        "name": "Chạy mỗi 5 giây",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 140,
+        "wires": [
+            [
+                "972244d244cf3977"
+            ]
+        ]
+    },
+    {
+        "id": "972244d244cf3977",
+        "type": "function",
+        "z": "d3a3dbb347ce888e",
+        "name": "Tạo 3 lệnh SQL INSERT/UPDATE",
+        "func": "// Hàm tạo số ngẫu nhiên trong khoảng min/max\nfunction getRandom(min, max, fixed = 2) {\n    return (Math.random() * (max - min) + min).toFixed(fixed);\n}\n\n// Danh sách các giá trị ngẫu nhiên\nconst temp = getRandom(25, 30, 1);\nconst humi = getRandom(60, 80, 0);\nconst pres = getRandom(1000, 1015, 2);\n\n// --- TẠO 3 LỆNH SQL CHUỖI ĐỘC LẬP ---\nconst sql_temp = `INSERT INTO latest_sensor_values (sensor_id, value, unit) VALUES ('temperature', '${temp}', '°C') ON DUPLICATE KEY UPDATE value='${temp}', last_updated=CURRENT_TIMESTAMP();`;\nconst sql_humi = `INSERT INTO latest_sensor_values (sensor_id, value, unit) VALUES ('humidity', '${humi}', '%') ON DUPLICATE KEY UPDATE value='${humi}', last_updated=CURRENT_TIMESTAMP();`;\nconst sql_pres = `INSERT INTO latest_sensor_values (sensor_id, value, unit) VALUES ('pressure', '${pres}', 'hPa') ON DUPLICATE KEY UPDATE value='${pres}', last_updated=CURRENT_TIMESTAMP();`;\n\n// --- GHÉP 3 LỆNH THÀNH 1 CHUỖI DUY NHẤT ---\n// Node MySQL có thể thực thi nhiều lệnh nếu chúng được nối với nhau bằng dấu chấm phẩy (;)\nconst sql_single_string = sql_temp + sql_humi + sql_pres;\n\n// Gán chuỗi lệnh SQL duy nhất vào msg.topic\nvar msg_sql = { topic: sql_single_string, payload: null };\n\n// Trả về output:\nreturn msg_sql;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 260,
+        "wires": [
+            [
+                "1fa0b546ad1b62da"
+            ]
+        ]
+    },
+    {
+        "id": "1fa0b546ad1b62da",
+        "type": "mysql",
+        "z": "d3a3dbb347ce888e",
+        "mydb": "10bcc990c4c36268",
+        "name": "Lưu vào MariaDB",
+        "x": 710,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f51a7008.17f2",
+        "type": "http in",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "POST /api/register",
+        "url": "/api/register",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 140,
+        "wires": [
+            [
+                "c90f235b.0782e"
+            ]
+        ]
+    },
+    {
+        "id": "c90f235b.0782e",
+        "type": "json",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 350,
+        "y": 140,
+        "wires": [
+            [
+                "e57140e6.9a6e6"
+            ]
+        ]
+    },
+    {
+        "id": "c57e62d4.2759e",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Tạo SQL INSERT (Non-Array)",
+        "func": "// msg.payload lúc này là hash\nconst username = msg.username;\nconst password_hash = msg.payload;\n\n// Xây dựng câu lệnh SQL đầy đủ (KHÔNG dùng dấu ?)\nmsg.topic = `INSERT INTO users (username, password_hash) VALUES ('${username}', '${password_hash}')`;\nmsg.payload = null; // Đảm bảo payload không phải là mảng\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 730,
+        "y": 200,
+        "wires": [
+            [
+                "a1738725.c85098"
+            ]
+        ]
+    },
+    {
+        "id": "a1738725.c85098",
+        "type": "mysql",
+        "z": "a1b2c3d4.e5f6a7",
+        "mydb": "10bcc990c4c36268",
+        "name": "Lưu vào MariaDB",
+        "x": 940,
+        "y": 200,
+        "wires": [
+            [
+                "e348f95c.579128"
+            ]
+        ]
+    },
+    {
+        "id": "e348f95c.579128",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "OK 201",
+        "func": "msg.statusCode = 201;\nmsg.payload = { message: \"Đăng ký thành công\" };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 1130,
+        "y": 200,
+        "wires": [
+            [
+                "a011de9a.05b4b"
+            ]
+        ]
+    },
+    {
+        "id": "a011de9a.05b4b",
+        "type": "http response",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Trả về HTTP",
+        "statusCode": "",
+        "headers": {},
+        "x": 1310,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "e57140e6.9a6e6",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Mã hóa SHA256",
+        "func": "// Sửa lỗi: Kiểm tra và chuyển đổi password sang chuỗi trước khi hash\nconst crypto = global.get('crypto');\n\nconst username = msg.payload.username;\nlet password = msg.payload.password;\n\n// Bắt buộc kiểm tra và chuyển đổi: Nếu password là null/undefined, chuyển thành chuỗi rỗng\nif (password === null || typeof password === 'undefined') {\n    password = \"\"; \n}\n\n// Lưu username để dùng sau\nmsg.username = username;\n\n// Tạo hash SHA256 và trả về dạng hex (dùng toLowerCase để nhất quán)\nconst hash = crypto.createHash('sha256').update(String(password)).digest('hex').toLowerCase();\n\n// Gán hash vào payload\nmsg.payload = hash;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 520,
+        "y": 200,
+        "wires": [
+            [
+                "c57e62d4.2759e"
+            ]
+        ]
+    },
+    {
+        "id": "b3e04746.b38028",
+        "type": "catch",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Bắt lỗi DB",
+        "scope": [
+            "a1738725.c85098"
+        ],
+        "x": 930,
+        "y": 260,
+        "wires": [
+            [
+                "f9b36ed6.5c391"
+            ]
+        ]
+    },
+    {
+        "id": "f9b36ed6.5c391",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Lỗi 409 (Trùng user)",
+        "func": "if (msg.error && msg.error.message.includes(\"Duplicate entry\")) {\n    msg.statusCode = 409; \n    msg.payload = { message: \"Tên đăng nhập đã tồn tại\" };\n} else {\n    msg.statusCode = 500;\n    msg.payload = { message: \"Lỗi máy chủ\", error: msg.error.message };\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 1140,
+        "y": 260,
+        "wires": [
+            [
+                "a011de9a.05b4b"
+            ]
+        ]
+    },
+    {
+        "id": "90d6b637.331498",
+        "type": "http in",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "POST /api/login",
+        "url": "/api/login",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 380,
+        "wires": [
+            [
+                "50720235.d1d91c"
+            ]
+        ]
+    },
+    {
+        "id": "50720235.d1d91c",
+        "type": "json",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 330,
+        "y": 380,
+        "wires": [
+            [
+                "ab1e7790.233d38"
+            ]
+        ]
+    },
+    {
+        "id": "ab1e7790.233d38",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Tạo SQL SELECT (Non-Array)",
+        "func": "const username = msg.payload.username;\n\n// Lưu mật khẩu từ form (để hash lại)\nmsg.form_password = msg.payload.password;\n\n// Tạo câu lệnh SELECT hoàn chỉnh\nmsg.topic = `SELECT password_hash, username FROM users WHERE username = '${username}'`;\nmsg.payload = null;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 510,
+        "y": 380,
+        "wires": [
+            [
+                "a28d6acb.308258"
+            ]
+        ]
+    },
+    {
+        "id": "a28d6acb.308258",
+        "type": "mysql",
+        "z": "a1b2c3d4.e5f6a7",
+        "mydb": "10bcc990c4c36268",
+        "name": "Query MariaDB",
+        "x": 710,
+        "y": 380,
+        "wires": [
+            [
+                "c0f8d070.36fa7"
+            ]
+        ]
+    },
+    {
+        "id": "c0f8d070.36fa7",
+        "type": "switch",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Tìm thấy user?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            },
+            {
+                "t": "empty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 900,
+        "y": 380,
+        "wires": [
+            [
+                "61b17b6d.5f7e64"
+            ],
+            [
+                "59d870e2.c1f0b"
+            ]
+        ]
+    },
+    {
+        "id": "61b17b6d.5f7e64",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Hash pass (SHA256) & Lấy hash DB",
+        "func": "const crypto = global.get('crypto');\n\nlet inputPassword = msg.form_password;\n\n// Bắt buộc kiểm tra và chuyển đổi: Nếu password là null/undefined, chuyển thành chuỗi rỗng\nif (inputPassword === null || typeof inputPassword === 'undefined') {\n    inputPassword = \"\"; \n}\n\n// Hash cái pass đó bằng SHA256 (sử dụng toLowerCase để nhất quán)\nconst inputHash = crypto.createHash('sha256').update(String(inputPassword)).digest('hex').toLowerCase();\n\n// Lấy hash từ DB (array [0]). Dùng trim() và toLowerCase() để so sánh chính xác\nconst dbHash = msg.payload[0].password_hash.trim().toLowerCase();\n\n// Đặt lại biến để so sánh\nmsg.inputHash = inputHash;\nmsg.dbHash = dbHash;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 970,
+        "y": 440,
+        "wires": [
+            [
+                "50c6ca.0d56c934"
+            ]
+        ]
+    },
+    {
+        "id": "50c6ca.0d56c934",
+        "type": "switch",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "So sánh 2 hash?",
+        "property": "inputHash",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "dbHash",
+                "vt": "msg"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1220,
+        "y": 440,
+        "wires": [
+            [
+                "89a99f9c.9f123"
+            ],
+            [
+                "59d870e2.c1f0b"
+            ]
+        ]
+    },
+    {
+        "id": "59d870e2.c1f0b",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Lỗi 401",
+        "func": "msg.statusCode = 401;\nmsg.payload = { message: \"Tên đăng nhập hoặc mật khẩu không đúng\" };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 1130,
+        "y": 380,
+        "wires": [
+            [
+                "7d3632ab.ac22bc"
+            ]
+        ]
+    },
+    {
+        "id": "7d3632ab.ac22bc",
+        "type": "http response",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Trả về HTTP",
+        "statusCode": "",
+        "headers": {},
+        "x": 1330,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "89a99f9c.9f123",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "OK 200 + Set Cookie",
+        "func": "// Sửa lỗi expires: Chỉ dùng maxAge\nconst token = msg.req.body.username + \"_\" + Date.now();\n\nmsg.cookies = {\n    \"session_token\": {\n        value: token,\n        httpOnly: true, \n        path: \"/\",\n        maxAge: 3600 * 1000 // 1 giờ\n    }\n};\n\nmsg.statusCode = 200;\nmsg.payload = { message: \"Đăng nhập thành công\" };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 1470,
+        "y": 440,
+        "wires": [
+            [
+                "7d3632ab.ac22bc"
+            ]
+        ]
+    },
+    {
+        "id": "5de666d6.b33b78",
+        "type": "http in",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "GET /api/latest-data",
+        "url": "/api/latest-data",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 600,
+        "wires": [
+            [
+                "35f4df3e.c5213"
+            ]
+        ]
+    },
+    {
+        "id": "35f4df3e.c5213",
+        "type": "switch",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Đã đăng nhập? (Check Cookie)",
+        "property": "req.cookies.session_token",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 450,
+        "y": 600,
+        "wires": [
+            [
+                "b1b3bc2e.952d7"
+            ],
+            [
+                "5108a73a.8f77d8"
+            ]
+        ]
+    },
+    {
+        "id": "b1b3bc2e.952d7",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Tạo SQL SELECT (Non-Array)",
+        "func": "msg.topic = \"SELECT * FROM latest_sensor_values\";\nmsg.payload = null;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 710,
+        "y": 580,
+        "wires": [
+            [
+                "b62e49c.81f44b8"
+            ]
+        ]
+    },
+    {
+        "id": "b62e49c.81f44b8",
+        "type": "mysql",
+        "z": "a1b2c3d4.e5f6a7",
+        "mydb": "10bcc990c4c36268",
+        "name": "Query MariaDB",
+        "x": 910,
+        "y": 580,
+        "wires": [
+            [
+                "6175e117.8c0c4"
+            ]
+        ]
+    },
+    {
+        "id": "6175e117.8c0c4",
+        "type": "http response",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Trả data",
+        "statusCode": "",
+        "headers": {},
+        "x": 1090,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "5108a73a.8f77d8",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Lỗi 401 (Chưa đăng nhập)",
+        "func": "msg.statusCode = 401;\nmsg.payload = { message: \"Chưa đăng nhập hoặc phiên hết hạn\" };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 740,
+        "y": 640,
+        "wires": [
+            [
+                "3c91d6a6.be99aa"
+            ]
+        ]
+    },
+    {
+        "id": "3c91d6a6.be99aa",
+        "type": "http response",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Trả lỗi 401",
+        "statusCode": "",
+        "headers": {},
+        "x": 1090,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "b7136015.65e21",
+        "type": "http in",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "POST /api/logout",
+        "url": "/api/logout",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 740,
+        "wires": [
+            [
+                "6a22b7a4.908c68"
+            ]
+        ]
+    },
+    {
+        "id": "6a22b7a4.908c68",
+        "type": "function",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Xóa Cookie",
+        "func": "msg.cookies = {\n    \"session_token\": {\n        value: \"\",\n        path: \"/\",\n        expires: \"Thu, 01 Jan 1970 00:00:00 GMT\" \n    }\n};\n\nmsg.statusCode = 200;\nmsg.payload = { message: \"Đăng xuất thành công\" };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 360,
+        "y": 740,
+        "wires": [
+            [
+                "b188c03c.cc6e9"
+            ]
+        ]
+    },
+    {
+        "id": "b188c03c.cc6e9",
+        "type": "http response",
+        "z": "a1b2c3d4.e5f6a7",
+        "name": "Trả về HTTP",
+        "statusCode": "",
+        "headers": {},
+        "x": 550,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "8d284826311d4c0d",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-mysql": "2.0.0"
+        }
+    }
+]
