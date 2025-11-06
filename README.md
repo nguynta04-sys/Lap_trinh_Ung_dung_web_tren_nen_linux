@@ -46,21 +46,39 @@ node-red-contrib-bcrypt (Để kiểm tra mật khẩu login)
 - Em Import Flow mô phỏng dữ liệu:
 - Tôi đã tạo sẵn một flow (luồng) cơ bản. Flow này sẽ:
 
-Mô phỏng: Cứ 5 giây, tự tạo ra giá trị nhiệt độ, độ ẩm ngẫu nhiên.
+Mô phỏng: Cứ 3 giây, tự tạo ra giá trị nhiệt độ, độ ẩm.
 
 Lưu vào MariaDB: Cập nhật giá trị mới nhất vào bảng latest_sensor_data.
 
 Lưu vào InfluxDB: Ghi lại giá trị lịch sử vào InfluxDB (để Grafana vẽ biểu đồ).
-<img width="1920" height="1080" alt="Screenshot (50)" src="https://github.com/user-attachments/assets/612160de-5666-433c-9576-6f5542d7b98e" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/756e376f-73ae-4326-8feb-a393f0d5c667" />
+
 
 - Em install thêm node-red-node-mysql 
 <img width="681" height="164" alt="image" src="https://github.com/user-attachments/assets/d64a452b-fb7e-4b55-8413-e47589709b2e" />
 
 - Em cấu hình kết nối với MariaDB:
-<img width="1920" height="1080" alt="Screenshot (51)" src="https://github.com/user-attachments/assets/6a550cf0-9d31-49ce-bc92-33a34530fa7a" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/935b3652-dccd-4768-828b-a2fbca760e63" />
 
-- Em kiểm tra dữ liệu mới nhất trong MariaDB
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ab110ab6-8009-467f-a469-2c5ac30ea962" />
+
+- Em đăng kí và đăng nhập bằng tài khoản admin:
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fae1ebd7-963a-4478-ad0a-0188a5f02614" />
+
+- Đây là khi em đăng kí:
+<img width="1920" height="1080" alt="Screenshot (60)" src="https://github.com/user-attachments/assets/5be150bb-2cd1-4a6a-8db5-4d862450c20a" />
+
+- Khi đăng kí thành công sẽ nhảy luôn đến phần đăng nhập:
+<img width="1920" height="1080" alt="Screenshot (61)" src="https://github.com/user-attachments/assets/67be2b55-030f-4bb6-ab6d-a1e2be001591" />
+
+- Em đăng nhập thành công:
+<img width="1920" height="1080" alt="Screenshot (62)" src="https://github.com/user-attachments/assets/257fe5dd-f022-4e8a-aedc-28fd81a976b3" />
+
+
+
+
+
+
+
 
 - Tiếp theo em truy cập vào Grafana: http://localhost:3000
 <img width="837" height="72" alt="image" src="https://github.com/user-attachments/assets/862a3b34-69f3-4dd0-90e3-7a1a9bf750e0" />
@@ -75,7 +93,18 @@ Lưu vào InfluxDB: Ghi lại giá trị lịch sử vào InfluxDB (để Grafan
 <img width="1920" height="1080" alt="Screenshot (58)" src="https://github.com/user-attachments/assets/23a9a99a-94c3-42d3-b62f-4c9c415270af" />
 <img width="1920" height="1080" alt="Screenshot (59)" src="https://github.com/user-attachments/assets/a586e9a5-7569-4df2-95a4-4805669da668" />
 
+## Vấn Đề
 
+- Phân Tách Dữ Liệu Chức Năng (MariaDB vs. InfluxDB): hiểu được sự khác biệt cốt lõi giữa hai loại cơ sở dữ liệu. MariaDB được dùng cho dữ liệu có cấu trúc, ít thay đổi (tài khoản người dùng) và dữ liệu trạng thái mới nhất (latest state) cần truy cập nhanh cho Dashboard SPA. Ngược lại, InfluxDB được dành riêng cho dữ liệu chuỗi thời gian (time-series) khổng lồ và liên tục, tối ưu hóa cho việc truy vấn lịch sử và vẽ biểu đồ hiệu suất cao bởi Grafana.
 
+- Node-RED như Tầng Middleware Linh hoạt: sử dụng Node-RED không chỉ là công cụ đọc cảm biến mà còn là tầng logic nghiệp vụ trung tâm (Middleware). Node-RED chịu trách nhiệm xử lý các tác vụ phức tạp như:
+
+  + Xác thực và mã hóa: Thực hiện logic Đăng ký/Đăng nhập (dùng SHA256) và tạo Session Token an toàn.
+
+  + Định tuyến Dữ liệu: Đồng thời gửi dữ liệu đến cả hai loại Database (MariaDB cho trạng thái hiện tại, InfluxDB cho lịch sử).
+
+- Triển khai SPA qua Reverse Proxy Nginx: Việc cấu hình Nginx để hoạt động như một Cổng (Gateway) duy nhất cho phép truy cập tất cả các dịch vụ (Frontend, Node-RED, Grafana) qua cùng một domain (http://nguyentuananh.local/). Điều này không chỉ đáp ứng yêu cầu kỹ thuật mà còn thể hiện sự hiểu biết về cách quản lý và định tuyến lưu lượng truy cập trong môi trường Microservice.
+
+- Tính toàn vẹn (End-to-End Logic): Toàn bộ chuỗi vận hành được thiết lập: Frontend (SPA) → API (Node-RED) → Data Storage (MariaDB/InfluxDB) → Visualization (Grafana). Đặc biệt, việc sử dụng hàm setInterval để cập nhật dữ liệu Dashboard mỗi 3 giây thể hiện sự hiểu biết về yêu cầu giám sát thời gian thực của ứng dụng IOT.
 
 
